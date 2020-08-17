@@ -1,6 +1,7 @@
 import { LitElement, html, property } from 'lit-element';
 import '@material/mwc-top-app-bar/mwc-top-app-bar.js';
 import '@material/mwc-dialog/mwc-dialog.js';
+//import * as PouchDB from 'pouchdb';
 import '../components/el-plant-list.js';
 
 export class ElViewPlot extends LitElement {
@@ -12,6 +13,7 @@ export class ElViewPlot extends LitElement {
   @property({ type: String }) locationDescription = '';
   @property({ type: String }) habitatDescription = '';
   @property({ type: String }) collectorName = '';
+  @property() db: PouchDB.Database<{}>;
 
   get gridCode() {
     if (this.latitude === -1 || this.longitude === -1) {
@@ -35,6 +37,27 @@ export class ElViewPlot extends LitElement {
     return `${degLat}${minLat
       .toString()
       .padStart(2, '0')}-${degLong}${minLong.toString().padStart(2, '0')}`;
+  }
+
+  constructor() {
+    super();
+
+    this.db = new PouchDB('plant-survey-app');
+    this.sync();
+  }
+
+  sync() {
+    const remoteCouch = 'http://192.168.132.111:5984/plant-survey-app';
+    const opts = { live: true };
+    this.db.replicate.to(remoteCouch, opts, () => {
+      console.log('Sync error');
+    });
+    this.db.replicate.from(remoteCouch, opts, () => {
+      console.log('Sync error');
+    });
+    this.db.get('plotlist:2544-2818').then(function (doc) {
+      console.log(doc);
+    });
   }
 
   render() {

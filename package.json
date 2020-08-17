@@ -13,7 +13,7 @@
     "storybook:build": "build-storybook",
     "build": "rimraf dist && tsc && rollup -c rollup.config.js",
     "start:build": "npm run build && es-dev-server --root-dir dist --app-index index.html --open --compatibility none",
-    "start": "concurrently --kill-others --names tsc,es-dev-server \"npm run tsc:watch\" \"es-dev-server --app-index index.html --node-resolve --open --watch\"",
+    "start": "concurrently --kill-others --names tsc,es-dev-server \"npm run tsc:watch\" \"es-dev-server --app-index index.html --open --watch\"",
     "tsc:watch": "tsc --watch"
   },
   "devDependencies": {
@@ -71,7 +71,9 @@
     "@material/mwc-icon-button": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-list": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-top-app-bar": "^0.19.0-canary.18d6b808.0",
+    "@types/pouchdb": "^6.4.0",
     "lit-element": "^2.0.1",
-    "lit-html": "^1.0.0"
+    "lit-html": "^1.0.0",
+    "pouchdb": "^7.2.2"
   }
 }
