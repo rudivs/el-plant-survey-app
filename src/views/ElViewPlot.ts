@@ -3,6 +3,8 @@ import '@material/mwc-top-app-bar/mwc-top-app-bar.js';
 import '@material/mwc-dialog/mwc-dialog.js';
 //import * as PouchDB from 'pouchdb';
 import '../components/el-plant-list.js';
+import '../types/types.js';
+import { promises } from 'dns';
 
 export class ElViewPlot extends LitElement {
   @property({ type: Number }) latitude = -1;
@@ -13,17 +15,21 @@ export class ElViewPlot extends LitElement {
   @property({ type: String }) locationDescription = '';
   @property({ type: String }) habitatDescription = '';
   @property({ type: String }) collectorName = '';
-  @property() db: PouchDB.Database<{}>;
+  @property() db: PouchDB.Database<{}> = new PouchDB('plant-survey-app');
+  @property({ type: Array }) plotList: Array<SpeciesRecord> = new Array<
+    SpeciesRecord
+  >();
+
+  get title() {
+    return `Plot List${this.gridCode ? `: ${this.gridCode}` : ''}`;
+  }
 
   get gridCode() {
     if (this.latitude === -1 || this.longitude === -1) {
-      alert('No locatiion set. Please enable location services and try again.');
       return null;
     }
-    if (this.accuracy > 100) {
-      alert(
-        'Accuracy is worse than 100m. Please wait for a more accurate position.'
-      );
+    if (this.accuracy > 1000000) {
+      // testing only: fix this (set to 100)!!!
       return null;
     }
 
@@ -43,35 +49,37 @@ export class ElViewPlot extends LitElement {
     super();
 
     this.db = new PouchDB('plant-survey-app');
-    this.sync();
   }
 
-  sync() {
+  _sync() {
     const remoteCouch = 'http://192.168.132.111:5984/plant-survey-app';
-    const opts = { live: true };
-    this.db.replicate.to(remoteCouch, opts, () => {
-      console.log('Sync error');
-    });
-    this.db.replicate.from(remoteCouch, opts, () => {
-      console.log('Sync error');
-    });
-    this.db.get('plotlist:2544-2818').then(function (doc) {
-      console.log(doc);
-    });
+    const opts = { live: false };
+    this.db
+      .sync(remoteCouch, opts)
+      .on('error', () => {
+        console.log('Sync error');
+      })
+      .on('complete', () => {
+        // TODO: sync UX
+      });
   }
 
   render() {
     return html`
       <mwc-top-app-bar>
         <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-        <div slot="title">Title</div>
-        <mwc-icon-button icon="edit" slot="actionItems"></mwc-icon-button>
+        <div slot="title">${this.title}</div>
+        <mwc-icon-button
+          icon="sync"
+          slot="actionItems"
+          @click=${this._sync}
+        ></mwc-icon-button>
         <mwc-icon-button
           icon="post_add"
           slot="actionItems"
           @click=${this._newPlot}
         ></mwc-icon-button>
-        <div><el-plant-list></el-plant-list></div>
+        <div><el-plant-list .data=${this.plotList}></el-plant-list></div>
       </mwc-top-app-bar>
     `;
   }
@@ -95,15 +103,87 @@ export class ElViewPlot extends LitElement {
           console.log(`Accuracy: ${position.coords.accuracy}`);
           console.log(`Altitude: ${position.coords.altitude}`);
           console.log(`Altitude accuracy: ${position.coords.altitudeAccuracy}`);
-          console.log(`Grid code: ${this.gridCode}`);
+          if (this.accuracy < 1000000) this._generatePlotList();
+          // testing only: fix this (set to 100)!!!
+          else
+            alert(
+              'Accuracy is worse than 100m. Please wait for a more accurate position.'
+            );
         },
         this._positionError,
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       );
     } else {
-      alert('No locatiion set. Please enable location services and try again.');
+      alert('No location set. Please enable location services and try again.');
       console.log('No geolocation available.');
+      return;
     }
+  }
+
+  _generatePlotList() {
+    let speciesList: Array<Species> | undefined;
+
+    const speciesListPromise = this.db
+      .get<SpeciesList>('specieslist')
+      .then(doc => {
+        speciesList = doc.speciesList;
+      })
+      .catch(err => {
+        console.log(err);
+        alert(
+          `Could not load the target species list. Please sync first and try again.`
+        );
+        return;
+      });
+
+    if (!this.gridCode) {
+      alert(
+        'Unable to determine grid code (probably location is not accurate enough). Please try again.'
+      );
+      return;
+    }
+
+    let gridList: Array<string> | undefined;
+
+    const gridListPromise = this.db
+      .get<GridList>(`plotlist:${this.gridCode}`)
+      .then(doc => {
+        gridList = doc.speciesList;
+        console.log(gridList);
+      })
+      .catch(err => {
+        console.log(err);
+        alert(
+          'Could not load the species list for this grid. Please sync first and try again.'
+        );
+        return;
+      });
+
+    Promise.all([speciesListPromise, gridListPromise]).then(() => {
+      this.plotList = gridList?.map(x => {
+        const taxon = speciesList?.find(s => s.speciesId === x);
+        const speciesRecord = {
+          speciesId: x,
+          speciesName: taxon?.speciesName ?? 'Unmatched species',
+          family: taxon?.family ?? 'Unmatched species',
+          habitat: taxon?.habitat ?? 'Unmatched species',
+          status: taxon?.status ?? 'Unknown',
+          count: 0,
+        };
+        return speciesRecord;
+      }) ?? [
+        {
+          speciesId: 'xxx',
+          speciesName: 'Unmatched species',
+          family: 'Unmatched species',
+          habitat: 'Unmatched species',
+          status: 'Unknown',
+          count: 0,
+        },
+      ];
+
+      console.log(this.plotList);
+    });
   }
 
   _positionError(error: any) {
