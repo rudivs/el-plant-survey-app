@@ -52,8 +52,9 @@ export class ElViewPlot extends LitElement {
   }
 
   _sync() {
-    const remoteCouch = 'http://192.168.132.111:5984/plant-survey-app';
+    const remoteCouch = 'http://couch.ecologix.dev:5984/plant-survey-app';
     const opts = { live: false };
+    //alert('Sync started');
     this.db
       .sync(remoteCouch, opts)
       .on('error', () => {
@@ -61,6 +62,7 @@ export class ElViewPlot extends LitElement {
       })
       .on('complete', () => {
         // TODO: sync UX
+        alert('Sync complete');
       });
   }
 
