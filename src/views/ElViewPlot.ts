@@ -52,7 +52,7 @@ export class ElViewPlot extends LitElement {
   }
 
   _sync() {
-    const remoteCouch = 'https://process.env.COUCHDB_URL/plant-survey-app';
+    const remoteCouch = `https://${process.env.COUCHDB_URL}/plant-survey-app`;
     const opts = { live: true };
     //alert('Sync started');
     this.db
