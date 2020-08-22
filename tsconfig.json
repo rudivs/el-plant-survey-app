@@ -1,4 +1,4 @@
-  {
+{
   "compilerOptions": {
     "target": "es2018",
     "module": "esnext",
@@ -8,6 +8,7 @@
     "strict": true,
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
+    "strictNullChecks": false,
     "experimentalDecorators": true,
     "importHelpers": true,
     "outDir": "out-tsc",

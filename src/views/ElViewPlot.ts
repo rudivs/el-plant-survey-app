@@ -1,10 +1,19 @@
-import { LitElement, html, property } from 'lit-element';
-import '@material/mwc-top-app-bar/mwc-top-app-bar.js';
-import '@material/mwc-dialog/mwc-dialog.js';
-//import * as PouchDB from 'pouchdb';
+import { LitElement, html, property, css } from 'lit-element';
 import '../components/el-plant-list.js';
 import '../types/types.js';
-import { promises } from 'dns';
+import '@material/mwc-top-app-bar/mwc-top-app-bar.js';
+import '@material/mwc-dialog/mwc-dialog.js';
+import '@material/mwc-textfield/mwc-textfield.js';
+import '@material/mwc-textarea/mwc-textarea.js';
+import '@material/mwc-radio/mwc-radio.js';
+import '@material/mwc-formfield/mwc-formfield.js';
+import '@material/mwc-fab/mwc-fab.js';
+import type { Button } from '@material/mwc-button/mwc-button.js';
+import type { Dialog } from '@material/mwc-dialog/mwc-dialog.js';
+import type { TextField } from '@material/mwc-textfield/mwc-textfield.js';
+import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
+import type { Fab } from '@material/mwc-fab/mwc-fab.js';
+//import * as PouchDB from 'pouchdb';
 
 export class ElViewPlot extends LitElement {
   @property({ type: Number }) latitude = -1;
@@ -12,13 +21,13 @@ export class ElViewPlot extends LitElement {
   @property({ type: Number }) accuracy = -1;
   @property({ type: Number }) altitude?: number;
   @property({ type: Number }) altitudeAccuracy?: number;
-  @property({ type: String }) locationDescription = '';
+  @property({ type: String }) localityDescription = '';
   @property({ type: String }) habitatDescription = '';
-  @property({ type: String }) collectorName = '';
+  @property({ type: String }) surveyorName = '';
+  @property({ type: String }) siteCondition = '';
+  @property({ type: Number }) areaSampled = 0;
+  @property({ type: Array }) plotList = new Array<SpeciesRecord>();
   @property() db: PouchDB.Database<{}> = new PouchDB('plant-survey-app');
-  @property({ type: Array }) plotList: Array<SpeciesRecord> = new Array<
-    SpeciesRecord
-  >();
 
   get title() {
     return `Plot List${this.gridCode ? `: ${this.gridCode}` : ''}`;
@@ -51,22 +60,6 @@ export class ElViewPlot extends LitElement {
     this.db = new PouchDB('plant-survey-app');
   }
 
-  _sync() {
-    const remoteCouch =
-      'https://c7fb5858-d195-4676-85fa-a9d39219932f-bluemix:d703e01068c2a38078f0901107e5f498bc7e006359a7906d5ffd6257bbcc9a6f@c7fb5858-d195-4676-85fa-a9d39219932f-bluemix.cloudantnosqldb.appdomain.cloud/plant-survey-app';
-    const opts = { live: true };
-    //alert('Sync started');
-    this.db
-      .sync(remoteCouch, opts)
-      .on('error', () => {
-        console.log('Sync error');
-      })
-      .on('complete', () => {
-        // TODO: sync UX
-        alert('Sync complete');
-      });
-  }
-
   render() {
     return html`
       <mwc-top-app-bar>
@@ -82,9 +75,130 @@ export class ElViewPlot extends LitElement {
           slot="actionItems"
           @click=${this._newPlot}
         ></mwc-icon-button>
-        <div><el-plant-list .data=${this.plotList}></el-plant-list></div>
+        <div>
+          <mwc-dialog id="plot-dialog" heading="Plot Details">
+            <p>Please enter the detials for this plot.</p>
+            <mwc-textfield
+              id="surveyor-name"
+              minlength="3"
+              maxlength="64"
+              size="40"
+              label="Surveyor name"
+              required
+            >
+            </mwc-textfield>
+            <mwc-textarea
+              id="locality"
+              minlength="3"
+              maxlength="250"
+              label="Locality description"
+              cols="42"
+              required
+            >
+            </mwc-textarea>
+            <mwc-textarea
+              id="habitat"
+              minlength="3"
+              maxlength="250"
+              label="Habitat description"
+              cols="42"
+              required
+            >
+            </mwc-textarea>
+            <div class="radioBlock">
+              <label for="site-condition">Site condition:</label>
+              <mwc-formfield label="Good">
+                <mwc-radio name="site-condition" value="good"></mwc-radio>
+              </mwc-formfield>
+              <mwc-formfield label="Fair">
+                <mwc-radio name="site-condition" value="fair"></mwc-radio>
+              </mwc-formfield>
+              <mwc-formfield label="Poor">
+                <mwc-radio name="site-condition" value="poor"></mwc-radio>
+              </mwc-formfield>
+            </div>
+            <label for="area-sampled">Area sampled (m²)</label>
+            <mwc-textfield
+              id="area-sampled"
+              name="area-sampled"
+              type="number"
+              min="10"
+              max="100"
+              required
+            ></mwc-textfield>
+            <mwc-button id="confirm-button" slot="primaryAction">
+              Confirm
+            </mwc-button>
+            <mwc-button
+              id="cancel-button"
+              slot="secondaryAction"
+              dialogAction="close"
+            >
+              Cancel
+            </mwc-button>
+          </mwc-dialog>
+          <div id="plot-metadata" style="visibility:hidden">
+            <span><strong>Surveyor:</strong> ${this.surveyorName}</span><br />
+            <span><strong>Locality:</strong> ${this.localityDescription}</span
+            ><br />
+            <span><strong>Habitat:</strong> ${this.habitatDescription}</span
+            ><br />
+            <span
+              ><strong>Coordinates:</strong> ${this.latitude},
+              ${this.longitude}</span
+            ><br />
+            <span><strong>Accuracy:</strong> ${this.accuracy}</span><br />
+            <span><strong>Altitude:</strong> ${this.altitude}</span><br />
+            <span
+              ><strong>Altitude accuracy:</strong> ${this
+                .altitudeAccuracy}</span
+            ><br />
+            <span><strong>Site condition:</strong> ${this.siteCondition}</span
+            ><br />
+            <span><strong>Area sampled:</strong> ${this.areaSampled}</span
+            ><br />
+          </div>
+          <el-plant-list .data=${this.plotList}></el-plant-list>
+          <mwc-fab
+            extended
+            id="plot-fab"
+            icon="save"
+            label="Complete"
+            style="visibility:hidden"
+            @click=${this._save}
+          ></mwc-fab>
+        </div>
       </mwc-top-app-bar>
     `;
+  }
+
+  static styles = css`
+    .radioBlock {
+      display: block;
+    }
+
+    mwc-fab {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  `;
+
+  _sync() {
+    const remoteCouch =
+      'https://c7fb5858-d195-4676-85fa-a9d39219932f-bluemix:d703e01068c2a38078f0901107e5f498bc7e006359a7906d5ffd6257bbcc9a6f@c7fb5858-d195-4676-85fa-a9d39219932f-bluemix.cloudantnosqldb.appdomain.cloud/plant-survey-app';
+    const opts = { live: true };
+    //alert('Sync started');
+    this.db
+      .sync(remoteCouch, opts)
+      .on('error', () => {
+        console.log('Sync error');
+      })
+      .on('complete', () => {
+        // TODO: sync UX
+        alert('Sync complete');
+      });
   }
 
   _newPlot() {
@@ -152,7 +266,6 @@ export class ElViewPlot extends LitElement {
       .get<GridList>(`plotlist:${this.gridCode}`)
       .then(doc => {
         gridList = doc.speciesList;
-        console.log(gridList);
       })
       .catch(err => {
         console.log(err);
@@ -184,9 +297,122 @@ export class ElViewPlot extends LitElement {
           count: 0,
         },
       ];
-
-      console.log(this.plotList);
+      this._getPlotDetails();
     });
+  }
+
+  _getPlotDetails() {
+    const dialog = this.shadowRoot.querySelector('#plot-dialog') as Dialog;
+    const surveyorField = this.shadowRoot.querySelector(
+      '#surveyor-name'
+    ) as TextField;
+    const locationField = this.shadowRoot.querySelector(
+      '#locality'
+    ) as TextArea;
+    const habitatField = this.shadowRoot.querySelector('#habitat') as TextArea;
+    const areaSampledField = this.shadowRoot.querySelector(
+      '#area-sampled'
+    ) as TextArea;
+    const confirmButton = this.shadowRoot.querySelector(
+      '#confirm-button'
+    ) as Button;
+    const cancelButton = this.shadowRoot.querySelector(
+      '#cancel-button'
+    ) as Button;
+    const metadataSection = this.shadowRoot.querySelector(
+      '#plot-metadata'
+    ) as HTMLElement;
+    const fab = this.shadowRoot.querySelector('#plot-fab') as Fab;
+
+    confirmButton?.addEventListener('click', () => {
+      this.shadowRoot.querySelectorAll('mwc-radio').forEach(r => {
+        if (r.checked) this.siteCondition = r.value;
+      });
+      const isValid =
+        surveyorField.checkValidity() &&
+        locationField.checkValidity() &&
+        habitatField.checkValidity() &&
+        areaSampledField.checkValidity() &&
+        this.siteCondition != '';
+      if (isValid) {
+        dialog?.close();
+        this.surveyorName = surveyorField.value;
+        this.localityDescription = locationField.value;
+        this.habitatDescription = habitatField.value;
+        this.areaSampled = Number(areaSampledField.value);
+        metadataSection.style.visibility = 'visible';
+        return;
+      }
+
+      surveyorField.reportValidity();
+      locationField.reportValidity();
+      habitatField.reportValidity();
+      areaSampledField.reportValidity();
+      if (this.siteCondition == '') alert('Please select the site condition');
+    });
+
+    cancelButton?.addEventListener('click', () => {
+      this.plotList = new Array<SpeciesRecord>();
+      this.shadowRoot.querySelectorAll('mwc-radio').forEach(r => {
+        if (r.checked) r.checked = false;
+      });
+      (this.shadowRoot.querySelector('#plot-fab') as Fab).style.visibility =
+        'hidden';
+      metadataSection.style.visibility = 'visible';
+    });
+
+    dialog.open = true;
+    fab.style.visibility = 'visible';
+  }
+
+  _save() {
+    const doc: PlotSubmission = {
+      _id: `plotsubmission:${Date.now()}`,
+      surveyorName: this.surveyorName,
+      gridCode: this.gridCode,
+      latitude: this.latitude,
+      longitude: this.longitude,
+      positionAccuracy: this.accuracy,
+      altitude: this.altitude,
+      altitudeAccuracy: this.altitudeAccuracy,
+      localityDescription: this.localityDescription,
+      habitatDescription: this.habitatDescription,
+      siteCondition: this.siteCondition,
+      areaSampled: this.areaSampled,
+      plotList: this.plotList,
+    };
+    this.db
+      .put<PlotSubmission>(doc)
+      .then(() => {
+        console.log('plot saved');
+        this.latitude = -1;
+        this.longitude = -1;
+        this.accuracy = -1;
+        this.altitude = undefined;
+        this.altitudeAccuracy = undefined;
+        this.localityDescription = '';
+        this.habitatDescription = '';
+        this.surveyorName = '';
+        this.siteCondition = '';
+        this.areaSampled = 0;
+        this.plotList = new Array<SpeciesRecord>();
+        this.shadowRoot.querySelectorAll('mwc-radio').forEach(r => {
+          if (r.checked) r.checked = false;
+        });
+        (this.shadowRoot.querySelector('#plot-fab') as Fab).style.visibility =
+          'hidden';
+        (this.shadowRoot.querySelector(
+          '#plot-metadata'
+        ) as HTMLElement).style.visibility = 'hidden';
+        alert(
+          'Plot record saved. Remember to sync to upload your list when you have Internet access.'
+        );
+      })
+      .catch(err => {
+        console.log(
+          `Error submitting plot list for grid ${this.gridCode}: ${err}`
+        );
+      });
   }
 
   _positionError(error: any) {
@@ -195,7 +421,7 @@ export class ElViewPlot extends LitElement {
         console.error('User denied the request for Geolocation.');
         break;
       case error.POSITION_UNAVAILABLE:
-        console.error('Location information is unavailable.');
+        console.error('location information is unavailable.');
         break;
       case error.TIMEOUT:
         console.error('The request to get user location timed out.');

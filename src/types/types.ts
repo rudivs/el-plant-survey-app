@@ -22,3 +22,19 @@ interface SpeciesList {
 interface GridList {
   speciesList: Array<string>;
 }
+
+interface PlotSubmission {
+  _id: string;
+  surveyorName: string;
+  gridCode: string;
+  latitude: number;
+  longitude: number;
+  positionAccuracy: number;
+  altitude: number | null;
+  altitudeAccuracy: number | null;
+  localityDescription: string;
+  habitatDescription: string;
+  siteCondition: string;
+  areaSampled: number;
+  plotList: Array<SpeciesRecord>;
+}

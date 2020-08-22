@@ -34,7 +34,7 @@ export class LitNumberStepper extends LitElement {
 
   @property({ type: Number }) minimum = 0;
 
-  @property({ type: Number }) maximum = null;
+  @property({ type: Number }) maximum: number | null = null;
 
   @property({ type: Boolean })
   get __isMinimum(): boolean {
