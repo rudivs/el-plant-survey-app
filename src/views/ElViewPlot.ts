@@ -14,8 +14,6 @@ import type { TextField } from '@material/mwc-textfield/mwc-textfield.js';
 import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
 import type { Fab } from '@material/mwc-fab/mwc-fab.js';
 
-import PouchDB from 'pouchdb-browser';
-
 export class ElViewPlot extends LitElement {
   @property({ type: Number }) latitude = -1;
   @property({ type: Number }) longitude = -1;

@@ -1,7 +1,15 @@
 module.exports = {
-  "globDirectory": "dist/",
-  "globPatterns": [
-    "**/*.{js,html}"
+  globDirectory: 'dist/',
+  globPatterns: ['**/*.{js,html}'],
+  swDest: 'dist/sw.js',
+  runtimeCaching: [
+    {
+      urlPattern: /https:\/\/cdn\.jsdelivr\.net/,
+      handler: 'CacheFirst',
+    },
+    {
+      urlPattern: /https:\/\/fonts\.googleapis\.com/,
+      handler: 'CacheFirst',
+    },
   ],
-  "swDest": "dist/sw.js"
 };
