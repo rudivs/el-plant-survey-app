@@ -2,6 +2,7 @@ import merge from 'deepmerge';
 // use createSpaConfig for bundling a Single Page App
 import { createSpaConfig } from '@open-wc/building-rollup';
 import { generateSW } from 'rollup-plugin-workbox';
+import copy from 'rollup-plugin-copy';
 
 // use createBasicConfig to do regular JS to JS bundling
 // import { createBasicConfig } from '@open-wc/building-rollup';
@@ -30,6 +31,9 @@ export default merge(baseConfig, {
       globDirectory: 'dist/',
       globPatterns: ['**/*.{js,html}'],
       swDest: 'dist/sw.js',
+    }),
+    copy({
+      targets: [{ src: 'src/favicons/*', dest: 'dist/' }],
     }),
   ],
 
