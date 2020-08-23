@@ -18,6 +18,18 @@
       rel="stylesheet"
     />
     <script src="//cdn.jsdelivr.net/npm/pouchdb@7.2.1/dist/pouchdb.min.js"></script>
+    <script>
+      // Check that service workers are supported
+      // eslint-disable-next-line no-undef
+      if ('serviceWorker' in navigator) {
+        // Use the window load event to keep the page load performant
+        // eslint-disable-next-line no-undef
+        window.addEventListener('load', () => {
+          // eslint-disable-next-line no-undef
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
     <base href="/" />
 
     <style>
