@@ -13,7 +13,8 @@ import type { Dialog } from '@material/mwc-dialog/mwc-dialog.js';
 import type { TextField } from '@material/mwc-textfield/mwc-textfield.js';
 import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
 import type { Fab } from '@material/mwc-fab/mwc-fab.js';
-//import * as PouchDB from 'pouchdb';
+
+import PouchDB from 'pouchdb-browser';
 
 export class ElViewPlot extends LitElement {
   @property({ type: Number }) latitude = -1;

@@ -22,6 +22,8 @@
     "@open-wc/eslint-config": "^2.0.0",
     "@open-wc/testing": "^2.0.0",
     "@open-wc/testing-karma": "^3.0.0",
+    "@rollup/plugin-commonjs": "^15.0.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
     "@types/node": "13.11.1",
     "@types/pouchdb": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
@@ -37,6 +39,7 @@
     "rimraf": "^2.6.3",
     "rollup": "^2.3.4",
     "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-node-polyfills": "^0.2.1",
     "tslib": "^1.11.0",
     "typescript": "~3.8.2"
   },
@@ -81,6 +84,6 @@
     "@material/mwc-fab": "^0.19.0-canary.18d6b808.0",
     "lit-element": "^2.0.1",
     "lit-html": "^1.0.0",
-    "pouchdb": "^7.2.2"
+    "pouchdb-browser": "^7.2.2"
   }
 }
