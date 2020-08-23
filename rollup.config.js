@@ -37,6 +37,10 @@ export default merge(baseConfig, {
           urlPattern: /https:\/\/fonts\.googleapis\.com/,
           handler: 'CacheFirst',
         },
+        {
+          urlPattern: /https:\/\/fonts\.gstatic\.com/,
+          handler: 'CacheFirst',
+        },
       ],
     }),
     copy({
