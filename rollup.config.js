@@ -48,7 +48,7 @@ export default merge(baseConfig, {
     }),
     resolve({ browser: true }),
     commonjs(),
-    nodePolyfills(),
+    nodePolyfills({ crypto: true }),
   ],
 
   // alternatively, you can use your JS as entrypoint for rollup and
