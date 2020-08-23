@@ -187,14 +187,14 @@ export class ElViewPlot extends LitElement {
   _sync() {
     const remoteCouch =
       'https://c7fb5858-d195-4676-85fa-a9d39219932f-bluemix:d703e01068c2a38078f0901107e5f498bc7e006359a7906d5ffd6257bbcc9a6f@c7fb5858-d195-4676-85fa-a9d39219932f-bluemix.cloudantnosqldb.appdomain.cloud/plant-survey-app';
-    const opts = { live: true };
+    const opts = { live: false };
     //alert('Sync started');
     this.db
       .sync(remoteCouch, opts)
       .on('error', () => {
         console.log('Sync error');
       })
-      .on('paused', () => {
+      .on('complete', () => {
         // TODO: sync UX
         alert('Sync complete');
       });
