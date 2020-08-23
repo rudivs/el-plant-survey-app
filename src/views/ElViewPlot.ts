@@ -36,8 +36,7 @@ export class ElViewPlot extends LitElement {
     if (this.latitude === -1 || this.longitude === -1) {
       return null;
     }
-    if (this.accuracy > 1000000) {
-      // testing only: fix this (set to 100)!!!
+    if (this.accuracy > 100) {
       return null;
     }
 
@@ -219,8 +218,7 @@ export class ElViewPlot extends LitElement {
           console.log(`Accuracy: ${position.coords.accuracy}`);
           console.log(`Altitude: ${position.coords.altitude}`);
           console.log(`Altitude accuracy: ${position.coords.altitudeAccuracy}`);
-          if (this.accuracy < 1000000) this._generatePlotList();
-          // testing only: fix this (set to 100)!!!
+          if (this.accuracy <= 100) this._generatePlotList();
           else
             alert(
               'Accuracy is worse than 100m. Please wait for a more accurate position.'
@@ -403,7 +401,7 @@ export class ElViewPlot extends LitElement {
           '#plot-metadata'
         ) as HTMLElement).style.visibility = 'hidden';
         alert(
-          'Plot record saved. Remember to sync to upload your list when you have Internet access.'
+          `Plot record saved(${doc._id}). Remember to sync to upload your list when you have Internet access.`
         );
       })
       .catch(err => {
