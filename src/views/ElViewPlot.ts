@@ -302,27 +302,25 @@ export class ElViewPlot extends LitElement {
   }
 
   _getPlotDetails() {
-    const dialog = this.shadowRoot.querySelector('#plot-dialog') as Dialog;
-    const surveyorField = this.shadowRoot.querySelector(
+    const dialog: Dialog = this.shadowRoot.querySelector('#plot-dialog');
+    const surveyorField: TextField = this.shadowRoot.querySelector(
       '#surveyor-name'
-    ) as TextField;
-    const locationField = this.shadowRoot.querySelector(
-      '#locality'
-    ) as TextArea;
-    const habitatField = this.shadowRoot.querySelector('#habitat') as TextArea;
-    const areaSampledField = this.shadowRoot.querySelector(
+    );
+    const locationField: TextArea = this.shadowRoot.querySelector('#locality');
+    const habitatField: TextArea = this.shadowRoot.querySelector('#habitat');
+    const areaSampledField: TextArea = this.shadowRoot.querySelector(
       '#area-sampled'
-    ) as TextArea;
-    const confirmButton = this.shadowRoot.querySelector(
+    );
+    const confirmButton: Button = this.shadowRoot.querySelector(
       '#confirm-button'
-    ) as Button;
-    const cancelButton = this.shadowRoot.querySelector(
+    );
+    const cancelButton: Button = this.shadowRoot.querySelector(
       '#cancel-button'
-    ) as Button;
-    const metadataSection = this.shadowRoot.querySelector(
+    );
+    const metadataSection: HTMLElement = this.shadowRoot.querySelector(
       '#plot-metadata'
-    ) as HTMLElement;
-    const fab = this.shadowRoot.querySelector('#plot-fab') as Fab;
+    );
+    const fab: Fab = this.shadowRoot.querySelector('#plot-fab');
 
     confirmButton?.addEventListener('click', () => {
       this.shadowRoot.querySelectorAll('mwc-radio').forEach(r => {
@@ -368,6 +366,7 @@ export class ElViewPlot extends LitElement {
   _save() {
     const doc: PlotSubmission = {
       _id: `plotsubmission:${Date.now()}`,
+      type: 'plotsubmission',
       surveyorName: this.surveyorName,
       gridCode: this.gridCode,
       latitude: this.latitude,
