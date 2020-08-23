@@ -13,6 +13,7 @@ import type { Dialog } from '@material/mwc-dialog/mwc-dialog.js';
 import type { TextField } from '@material/mwc-textfield/mwc-textfield.js';
 import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
 import type { Fab } from '@material/mwc-fab/mwc-fab.js';
+import { ElPlantList } from '../components/ElPlantList.js';
 
 export class ElViewPlot extends LitElement {
   @property({ type: Number }) latitude = -1;
@@ -36,7 +37,7 @@ export class ElViewPlot extends LitElement {
     if (this.latitude === -1 || this.longitude === -1) {
       return null;
     }
-    if (this.accuracy > 100) {
+    if (this.accuracy > 150) {
       return null;
     }
 
@@ -193,7 +194,7 @@ export class ElViewPlot extends LitElement {
       .on('error', () => {
         console.log('Sync error');
       })
-      .on('complete', () => {
+      .on('paused', () => {
         // TODO: sync UX
         alert('Sync complete');
       });
@@ -218,7 +219,7 @@ export class ElViewPlot extends LitElement {
           console.log(`Accuracy: ${position.coords.accuracy}`);
           console.log(`Altitude: ${position.coords.altitude}`);
           console.log(`Altitude accuracy: ${position.coords.altitudeAccuracy}`);
-          if (this.accuracy <= 100) this._generatePlotList();
+          if (this.accuracy <= 150) this._generatePlotList();
           else
             alert(
               'Accuracy is worse than 100m. Please wait for a more accurate position.'
@@ -361,9 +362,11 @@ export class ElViewPlot extends LitElement {
   }
 
   _save() {
+    const date = Date.now();
     const doc: PlotSubmission = {
-      _id: `plotsubmission:${Date.now()}`,
+      _id: `plotsubmission:${date}`,
       type: 'plotsubmission',
+      date: new Date(date).toISOString(),
       surveyorName: this.surveyorName,
       gridCode: this.gridCode,
       latitude: this.latitude,
@@ -375,7 +378,8 @@ export class ElViewPlot extends LitElement {
       habitatDescription: this.habitatDescription,
       siteCondition: this.siteCondition,
       areaSampled: this.areaSampled,
-      plotList: this.plotList,
+      plotList: (this.shadowRoot.querySelector('el-plant-list') as ElPlantList)
+        .data,
     };
     this.db
       .put<PlotSubmission>(doc)

@@ -26,6 +26,7 @@ interface GridList {
 interface PlotSubmission {
   _id: string;
   type: string;
+  date: string;
   surveyorName: string;
   gridCode: string;
   latitude: number;
