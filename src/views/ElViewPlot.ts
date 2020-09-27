@@ -15,6 +15,12 @@ import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
 import type { Fab } from '@material/mwc-fab/mwc-fab.js';
 import { ElPlantList } from '../components/ElPlantList.js';
 
+enum Mode {
+  None,
+  List,
+  Record,
+}
+
 export class ElViewPlot extends LitElement {
   @property({ type: Number }) latitude = -1;
   @property({ type: Number }) longitude = -1;
@@ -30,6 +36,7 @@ export class ElViewPlot extends LitElement {
   @property() db: PouchDB.Database<{}> = new PouchDB('plant-survey-app');
   @property({ type: Boolean }) locationSet = false;
   @property({ type: Number }) minimumAccuracy = 150000;
+  @property({ type: Mode }) mode = Mode.None;
 
   get title() {
     return `Plot List${this.gridCode ? `: ${this.gridCode}` : ''}`;
@@ -138,14 +145,7 @@ export class ElViewPlot extends LitElement {
             </mwc-button>
           </mwc-dialog>
           <el-plant-list .data=${this.plotList}></el-plant-list>
-          <mwc-fab
-            extended
-            id="plot-fab"
-            icon="save"
-            label="Complete"
-            style="visibility:hidden"
-            @click=${this._save}
-          ></mwc-fab>
+          ${this._getFab(this.mode)}
         </div>
       </mwc-top-app-bar>
     `;
@@ -163,6 +163,29 @@ export class ElViewPlot extends LitElement {
       transform: translateX(-50%);
     }
   `;
+
+  _getFab(mode: Mode) {
+    switch (mode) {
+      case Mode.None:
+        return '';
+      case Mode.List:
+        return html`<mwc-fab
+          extended
+          id="plot-fab"
+          icon="play_arrow"
+          label="Start Recording"
+          @click=${this._getPlotDetails}
+        ></mwc-fab>`;
+      case Mode.Record:
+        return html`<mwc-fab
+          extended
+          id="plot-fab"
+          icon="save"
+          label="Complete"
+          @click=${this._save}
+        ></mwc-fab>`;
+    }
+  }
 
   _sync() {
     const remoteCouch =
@@ -183,7 +206,10 @@ export class ElViewPlot extends LitElement {
   _newPlot() {
     if ('geolocation' in navigator) {
       const _this = this;
-      this._setLocation(_this).then(() => this._generatePlotList());
+      this._setLocation(_this).then(() => {
+        this._generatePlotList();
+        this.mode = Mode.List;
+      });
     } else {
       alert('No location set. Please enable location services and try again.');
       console.log('No geolocation available.');
@@ -305,9 +331,6 @@ export class ElViewPlot extends LitElement {
     const cancelButton: Button = this.shadowRoot.querySelector(
       '#cancel-button'
     );
-    const metadataSection: HTMLElement = this.shadowRoot.querySelector(
-      '#plot-metadata'
-    );
     const fab: Fab = this.shadowRoot.querySelector('#plot-fab');
 
     confirmButton?.addEventListener('click', () => {
@@ -326,7 +349,13 @@ export class ElViewPlot extends LitElement {
         this.localityDescription = locationField.value;
         this.habitatDescription = habitatField.value;
         this.areaSampled = Number(areaSampledField.value);
-        metadataSection.style.visibility = 'visible';
+        this._setLocation(this).then(() => {
+          this._generatePlotList();
+          this.mode = Mode.Record;
+          (this.shadowRoot.querySelector(
+            'el-plant-list'
+          ) as ElPlantList).counterEnabled = true;
+        });
         return;
       }
 
@@ -343,7 +372,6 @@ export class ElViewPlot extends LitElement {
       });
       (this.shadowRoot.querySelector('#plot-fab') as Fab).style.visibility =
         'hidden';
-      metadataSection.style.visibility = 'visible';
     });
 
     dialog.open = true;
