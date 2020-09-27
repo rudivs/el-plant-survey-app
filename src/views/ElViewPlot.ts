@@ -28,6 +28,8 @@ export class ElViewPlot extends LitElement {
   @property({ type: Number }) areaSampled = 0;
   @property({ type: Array }) plotList = new Array<SpeciesRecord>();
   @property() db: PouchDB.Database<{}> = new PouchDB('plant-survey-app');
+  @property({ type: Boolean }) locationSet = false;
+  @property({ type: Number }) minimumAccuracy = 150000;
 
   get title() {
     return `Plot List${this.gridCode ? `: ${this.gridCode}` : ''}`;
@@ -37,7 +39,7 @@ export class ElViewPlot extends LitElement {
     if (this.latitude === -1 || this.longitude === -1) {
       return null;
     }
-    if (this.accuracy > 150) {
+    if (this.accuracy > this.minimumAccuracy) {
       return null;
     }
 
@@ -55,7 +57,6 @@ export class ElViewPlot extends LitElement {
 
   constructor() {
     super();
-
     this.db = new PouchDB('plant-survey-app');
   }
 
@@ -136,27 +137,6 @@ export class ElViewPlot extends LitElement {
               Cancel
             </mwc-button>
           </mwc-dialog>
-          <div id="plot-metadata" style="visibility:hidden">
-            <span><strong>Surveyor:</strong> ${this.surveyorName}</span><br />
-            <span><strong>Locality:</strong> ${this.localityDescription}</span
-            ><br />
-            <span><strong>Habitat:</strong> ${this.habitatDescription}</span
-            ><br />
-            <span
-              ><strong>Coordinates:</strong> ${this.latitude},
-              ${this.longitude}</span
-            ><br />
-            <span><strong>Accuracy:</strong> ${this.accuracy}</span><br />
-            <span><strong>Altitude:</strong> ${this.altitude}</span><br />
-            <span
-              ><strong>Altitude accuracy:</strong> ${this
-                .altitudeAccuracy}</span
-            ><br />
-            <span><strong>Site condition:</strong> ${this.siteCondition}</span
-            ><br />
-            <span><strong>Area sampled:</strong> ${this.areaSampled}</span
-            ><br />
-          </div>
           <el-plant-list .data=${this.plotList}></el-plant-list>
           <mwc-fab
             extended
@@ -202,32 +182,8 @@ export class ElViewPlot extends LitElement {
 
   _newPlot() {
     if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          if (position.coords.latitude != null)
-            this.latitude = position.coords.latitude;
-          if (position.coords.longitude != null)
-            this.longitude = position.coords.longitude;
-          if (position.coords.accuracy != null)
-            this.accuracy = position.coords.accuracy;
-          if (position.coords.altitude != null)
-            this.altitude = position.coords.altitude;
-          if (position.coords.altitudeAccuracy != null)
-            this.altitudeAccuracy = position.coords.altitudeAccuracy;
-          console.log(`Latitude: ${position.coords.latitude}`);
-          console.log(`Longitude: ${position.coords.longitude}`);
-          console.log(`Accuracy: ${position.coords.accuracy}`);
-          console.log(`Altitude: ${position.coords.altitude}`);
-          console.log(`Altitude accuracy: ${position.coords.altitudeAccuracy}`);
-          if (this.accuracy <= 150) this._generatePlotList();
-          else
-            alert(
-              'Accuracy is worse than 100m. Please wait for a more accurate position.'
-            );
-        },
-        this._positionError,
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-      );
+      const _this = this;
+      this._setLocation(_this).then(() => this._generatePlotList());
     } else {
       alert('No location set. Please enable location services and try again.');
       console.log('No geolocation available.');
@@ -235,7 +191,42 @@ export class ElViewPlot extends LitElement {
     }
   }
 
+  async _setLocation(_this: this) {
+    _this.locationSet = false;
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          if (position.coords.latitude != null)
+            _this.latitude = position.coords.latitude;
+          if (position.coords.longitude != null)
+            _this.longitude = position.coords.longitude;
+          if (position.coords.accuracy != null)
+            _this.accuracy = position.coords.accuracy;
+          if (position.coords.altitude != null)
+            _this.altitude = position.coords.altitude;
+          if (position.coords.altitudeAccuracy != null)
+            _this.altitudeAccuracy = position.coords.altitudeAccuracy;
+          if (_this.accuracy <= _this.minimumAccuracy) {
+            _this.locationSet = true;
+            console.log(`Location set. Current grid: ${_this.gridCode}.`);
+            resolve(position.coords);
+          } else {
+            alert(
+              `Accuracy is worse than ${_this.minimumAccuracy}m. Please wait for a more accurate position.`
+            );
+            reject(`Accuracy is worse than ${_this.minimumAccuracy}m`);
+          }
+        },
+        error => {
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+      );
+    }).catch(error => error);
+  }
+
   _generatePlotList() {
+    console.log('Generating plot list');
     let speciesList: Array<Species> | undefined;
 
     const speciesListPromise = this.db
@@ -295,7 +286,6 @@ export class ElViewPlot extends LitElement {
           count: 0,
         },
       ];
-      this._getPlotDetails();
     });
   }
 
@@ -348,7 +338,6 @@ export class ElViewPlot extends LitElement {
     });
 
     cancelButton?.addEventListener('click', () => {
-      this.plotList = new Array<SpeciesRecord>();
       this.shadowRoot.querySelectorAll('mwc-radio').forEach(r => {
         if (r.checked) r.checked = false;
       });
