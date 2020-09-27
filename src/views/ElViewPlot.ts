@@ -370,8 +370,6 @@ export class ElViewPlot extends LitElement {
       this.shadowRoot.querySelectorAll('mwc-radio').forEach(r => {
         if (r.checked) r.checked = false;
       });
-      (this.shadowRoot.querySelector('#plot-fab') as Fab).style.visibility =
-        'hidden';
     });
 
     dialog.open = true;
