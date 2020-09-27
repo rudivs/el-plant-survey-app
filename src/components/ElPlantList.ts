@@ -6,6 +6,7 @@ import '../types/types.js';
 
 export class ElPlantList extends LitElement {
   @property({ type: Array }) data: Array<SpeciesRecord> | undefined;
+  @property({ type: Boolean }) counterEnabled = false;
 
   static styles = css`
     mwc-list-item {
@@ -48,16 +49,18 @@ export class ElPlantList extends LitElement {
                   >${taxon.family?.substring(0, 3).toUpperCase()}
                 </span>
                 <span>${taxon.speciesName} (${taxon.status})</span>
-                <lit-number-stepper
-                  slot="meta"
-                  .taxon=${taxon.speciesName}
-                  .counter=${taxon.count}
-                  @increment=${(e: Event) =>
-                    this._updateTaxonCount(e, taxon.speciesId, 1)}
-                  @decrement=${(e: Event) =>
-                    this._updateTaxonCount(e, taxon.speciesId, -1)}
-                >
-                </lit-number-stepper>
+                ${this.counterEnabled
+                  ? html`<lit-number-stepper
+                      slot="meta"
+                      .taxon=${taxon.speciesName}
+                      .counter=${taxon.count}
+                      @increment=${(e: Event) =>
+                        this._updateTaxonCount(e, taxon.speciesId, 1)}
+                      @decrement=${(e: Event) =>
+                        this._updateTaxonCount(e, taxon.speciesId, -1)}
+                    >
+                    </lit-number-stepper>`
+                  : ''}
                 <span slot="secondary">${taxon.habitat}</span>
               </mwc-list-item>
               <li divider role="separator"></li>`
