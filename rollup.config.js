@@ -2,7 +2,6 @@ import merge from 'deepmerge';
 // use createSpaConfig for bundling a Single Page App
 import { createSpaConfig } from '@open-wc/building-rollup';
 import { generateSW } from 'rollup-plugin-workbox';
-import copy from 'rollup-plugin-copy';
 
 const baseConfig = createSpaConfig({
   // use the outputdir option to modify where files are output
