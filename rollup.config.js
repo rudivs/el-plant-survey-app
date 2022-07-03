@@ -6,7 +6,7 @@ import copy from 'rollup-plugin-copy';
 
 const baseConfig = createSpaConfig({
   // use the outputdir option to modify where files are output
-  // outputDir: 'dist',
+  outputDir: 'dist',
 
   // if you need to support older browsers, such as IE11, set the legacyBuild
   // option to generate an additional build just for this browser
@@ -23,6 +23,9 @@ export default merge(baseConfig, {
   // if you use createSpaConfig, you can use your index.html as entrypoint,
   // any <script type="module"> inside will be bundled by rollup
   input: './index.html',
+  output: {
+    dir: 'dist',
+  },
   plugins: [
     generateSW({
       globDirectory: 'dist/',
@@ -42,9 +45,6 @@ export default merge(baseConfig, {
           handler: 'CacheFirst',
         },
       ],
-    }),
-    copy({
-      targets: [{ src: 'src/favicons/*', dest: 'dist/' }],
     }),
   ],
 
