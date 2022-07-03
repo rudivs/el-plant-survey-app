@@ -187,13 +187,19 @@ export class ElViewPlot extends LitElement {
       this._loadSpeciesList();
     }
 
-    // filter the list of species to only those that are not already in the plot list (TODO: Fix this)
-    // const availableSpecies = this.speciesList.filter( species => !this.plotList.some( plot => plot.speciesId == species.speciesId));
+    // filter the list of species to only those that are not already in the plot list
+    const availableSpecies = this.speciesList.filter(
+      species =>
+        !this.plotList.some(plot => plot.speciesId == species.speciesId)
+    );
 
     return html` <mwc-dialog id="add-taxon-dialog" heading="Add taxon">
       <p>Please select a taxon to add to this plot.</p>
-      <el-taxon-list id="taxon-list" .data=${this.speciesList}></el-taxon-list>
-      <mwc-button id="confirm-button" slot="primaryAction">
+      <el-plant-list
+        id="add-taxon-species-list"
+        .data=${availableSpecies}
+      ></el-plant-list>
+      <mwc-button id="confirm-add-taxon-button" slot="primaryAction">
         Confirm
       </mwc-button>
       <mwc-button
