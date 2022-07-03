@@ -103,6 +103,16 @@ export class ElViewPlot extends LitElement {
       left: 50%;
       transform: translateX(-50%);
     }
+
+    .left {
+      left: 12%;
+      transform: translateX(0%);
+    }
+
+    .right {
+      right: 5%;
+      transform: translateX(50%);
+    }
   `;
 
   _getPlotDetailsDialog() {
@@ -211,14 +221,22 @@ export class ElViewPlot extends LitElement {
       case Mode.Record:
         // return a material fab button with save icon which saves the plot when clicked
         // and allows the user to add a taxon to the plot when long pressed
+        // next to the save button is a button to add a taxon to the plot
         return html`<mwc-fab
-          extended
-          id="plot-fab"
-          icon="save"
-          label="Complete"
-          @click=${this._savePlot}
-          @long-pressed=${this._addTaxon}
-        ></mwc-fab>`;
+            extended
+            id="plot-fab"
+            icon="save"
+            label="Complete"
+            class="left"
+            @click=${this._savePlot}
+          ></mwc-fab>
+          <mwc-fab
+            id="add-taxon-fab"
+            label="Add taxon"
+            class="right"
+            @click=${this._addTaxon}
+            ><mwc-icon slot="icon">add</mwc-icon></mwc-fab
+          >`;
     }
   }
 
