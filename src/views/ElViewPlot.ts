@@ -32,6 +32,7 @@ export class ElViewPlot extends LitElement {
   @property({ type: String }) surveyorName = '';
   @property({ type: String }) siteCondition = '';
   @property({ type: Number }) areaSampled = 0;
+  @property({ type: Array }) speciesList = new Array<Species>();
   @property({ type: Array }) plotList = new Array<SpeciesRecord>();
   @property() db: PouchDB.Database<{}> = new PouchDB('plant-survey-app');
   @property({ type: Boolean }) locationSet = false;
@@ -57,9 +58,9 @@ export class ElViewPlot extends LitElement {
     let minLong = Math.floor((this.longitude - degLong) * 60);
     if (minLong % 2 == 1) minLong = minLong - 1;
 
-    return `${degLat}${minLat
+    return `${degLat}${minLat.toString().padStart(2, '0')}-${degLong}${minLong
       .toString()
-      .padStart(2, '0')}-${degLong}${minLong.toString().padStart(2, '0')}`;
+      .padStart(2, '0')}`;
   }
 
   constructor() {
@@ -83,68 +84,8 @@ export class ElViewPlot extends LitElement {
           @click=${this._newPlot}
         ></mwc-icon-button>
         <div>
-          <mwc-dialog id="plot-dialog" heading="Plot Details">
-            <p>Please enter the detials for this plot.</p>
-            <mwc-textfield
-              id="surveyor-name"
-              minlength="3"
-              maxlength="64"
-              size="40"
-              label="Surveyor name"
-              required
-            >
-            </mwc-textfield>
-            <mwc-textarea
-              id="locality"
-              minlength="3"
-              maxlength="250"
-              label="Locality description"
-              cols="42"
-              required
-            >
-            </mwc-textarea>
-            <mwc-textarea
-              id="habitat"
-              minlength="3"
-              maxlength="250"
-              label="Habitat description"
-              cols="42"
-              required
-            >
-            </mwc-textarea>
-            <div class="radioBlock">
-              <label for="site-condition">Site condition:</label>
-              <mwc-formfield label="Good">
-                <mwc-radio name="site-condition" value="good"></mwc-radio>
-              </mwc-formfield>
-              <mwc-formfield label="Fair">
-                <mwc-radio name="site-condition" value="fair"></mwc-radio>
-              </mwc-formfield>
-              <mwc-formfield label="Poor">
-                <mwc-radio name="site-condition" value="poor"></mwc-radio>
-              </mwc-formfield>
-            </div>
-            <label for="area-sampled">Area sampled (m²)</label>
-            <mwc-textfield
-              id="area-sampled"
-              name="area-sampled"
-              type="number"
-              min="10"
-              max="100"
-              required
-            ></mwc-textfield>
-            <mwc-button id="confirm-button" slot="primaryAction">
-              Confirm
-            </mwc-button>
-            <mwc-button
-              id="cancel-button"
-              slot="secondaryAction"
-              dialogAction="close"
-            >
-              Cancel
-            </mwc-button>
-          </mwc-dialog>
-          <el-plant-list .data=${this.plotList}></el-plant-list>
+          ${this._getPlotDetailsDialog()} ${this._getAddTaxonDialog()}
+          <el-plant-list id="plot-list" .data=${this.plotList}></el-plant-list>
           ${this._getFab(this.mode)}
         </div>
       </mwc-top-app-bar>
@@ -164,6 +105,97 @@ export class ElViewPlot extends LitElement {
     }
   `;
 
+  _getPlotDetailsDialog() {
+    return html` <mwc-dialog id="plot-dialog" heading="Plot Details">
+      <p>Please enter the detials for this plot.</p>
+      <mwc-textfield
+        id="surveyor-name"
+        minlength="3"
+        maxlength="64"
+        size="40"
+        label="Surveyor name"
+        required
+      >
+      </mwc-textfield>
+      <mwc-textarea
+        id="locality"
+        minlength="3"
+        maxlength="250"
+        label="Locality description"
+        cols="42"
+        required
+      >
+      </mwc-textarea>
+      <mwc-textarea
+        id="habitat"
+        minlength="3"
+        maxlength="250"
+        label="Habitat description"
+        cols="42"
+        required
+      >
+      </mwc-textarea>
+      <div class="radioBlock">
+        <label for="site-condition">Site condition:</label>
+        <mwc-formfield label="Good">
+          <mwc-radio name="site-condition" value="good"></mwc-radio>
+        </mwc-formfield>
+        <mwc-formfield label="Fair">
+          <mwc-radio name="site-condition" value="fair"></mwc-radio>
+        </mwc-formfield>
+        <mwc-formfield label="Poor">
+          <mwc-radio name="site-condition" value="poor"></mwc-radio>
+        </mwc-formfield>
+      </div>
+      <label for="area-sampled">Area sampled (m²)</label>
+      <mwc-textfield
+        id="area-sampled"
+        name="area-sampled"
+        type="number"
+        min="10"
+        max="100"
+        required
+      ></mwc-textfield>
+      <mwc-button id="confirm-button" slot="primaryAction">
+        Confirm
+      </mwc-button>
+      <mwc-button
+        id="cancel-button"
+        slot="secondaryAction"
+        dialogAction="close"
+      >
+        Cancel
+      </mwc-button>
+    </mwc-dialog>`;
+  }
+
+  _getAddTaxonDialog() {
+    //returns a dialog for selecting a taxon from the list of available taxa in speciesList
+
+    //if speciesList is empty, first load it from the database
+    if (this.speciesList.length == 0) {
+      this._loadSpeciesList();
+    }
+
+    // filter the list of species to only those that are not already in the plot list (TODO: Fix this)
+    // const availableSpecies = this.speciesList.filter( species => !this.plotList.some( plot => plot.speciesId == species.speciesId));
+
+    return html` <mwc-dialog id="add-taxon-dialog" heading="Add taxon">
+      <p>Please select a taxon to add to this plot.</p>
+      <el-taxon-list id="taxon-list" .data=${this.speciesList}></el-taxon-list>
+      <mwc-button id="confirm-button" slot="primaryAction">
+        Confirm
+      </mwc-button>
+      <mwc-button
+        id="cancel-button"
+        slot="secondaryAction"
+        dialogAction="close"
+      >
+        Cancel
+      </mwc-button>
+    </mwc-dialog>`;
+  }
+
   _getFab(mode: Mode) {
     switch (mode) {
       case Mode.None:
@@ -177,12 +209,15 @@ export class ElViewPlot extends LitElement {
           @click=${this._getPlotDetails}
         ></mwc-fab>`;
       case Mode.Record:
+        // return a material fab button with save icon which saves the plot when clicked
+        // and allows the user to add a taxon to the plot when long pressed
         return html`<mwc-fab
           extended
           id="plot-fab"
           icon="save"
           label="Complete"
-          @click=${this._save}
+          @click=${this._savePlot}
+          @long-pressed=${this._addTaxon}
         ></mwc-fab>`;
     }
   }
@@ -253,20 +288,8 @@ export class ElViewPlot extends LitElement {
 
   _generatePlotList() {
     console.log('Generating plot list');
-    let speciesList: Array<Species> | undefined;
 
-    const speciesListPromise = this.db
-      .get<SpeciesList>('specieslist')
-      .then(doc => {
-        speciesList = doc.speciesList;
-      })
-      .catch(err => {
-        console.log(err);
-        alert(
-          `Could not load the target species list. Please sync first and try again.`
-        );
-        return;
-      });
+    const speciesListPromise = this._loadSpeciesList();
 
     if (!this.gridCode) {
       alert(
@@ -292,7 +315,7 @@ export class ElViewPlot extends LitElement {
 
     Promise.all([speciesListPromise, gridListPromise]).then(() => {
       this.plotList = gridList?.map(x => {
-        const taxon = speciesList?.find(s => s.speciesId === x);
+        const taxon = this.speciesList?.find(s => s.speciesId === x);
         const speciesRecord = {
           speciesId: x,
           speciesName: taxon?.speciesName ?? 'Unmatched species',
@@ -315,22 +338,36 @@ export class ElViewPlot extends LitElement {
     });
   }
 
-  _getPlotDetails() {
+  private _loadSpeciesList() {
+    // if the species list is already loaded, return
+    if (this.speciesList.length > 0) return;
+
+    return this.db
+      .get<SpeciesList>('specieslist')
+      .then(doc => {
+        this.speciesList = doc.speciesList;
+      })
+      .catch(err => {
+        console.log(err);
+        alert(
+          `Could not load the target species list. Please sync first and try again.`
+        );
+        return;
+      });
+  }
+
+  private _getPlotDetails() {
     const dialog: Dialog = this.shadowRoot.querySelector('#plot-dialog');
-    const surveyorField: TextField = this.shadowRoot.querySelector(
-      '#surveyor-name'
-    );
+    const surveyorField: TextField =
+      this.shadowRoot.querySelector('#surveyor-name');
     const locationField: TextArea = this.shadowRoot.querySelector('#locality');
     const habitatField: TextArea = this.shadowRoot.querySelector('#habitat');
-    const areaSampledField: TextArea = this.shadowRoot.querySelector(
-      '#area-sampled'
-    );
-    const confirmButton: Button = this.shadowRoot.querySelector(
-      '#confirm-button'
-    );
-    const cancelButton: Button = this.shadowRoot.querySelector(
-      '#cancel-button'
-    );
+    const areaSampledField: TextArea =
+      this.shadowRoot.querySelector('#area-sampled');
+    const confirmButton: Button =
+      this.shadowRoot.querySelector('#confirm-button');
+    const cancelButton: Button =
+      this.shadowRoot.querySelector('#cancel-button');
     const fab: Fab = this.shadowRoot.querySelector('#plot-fab');
 
     confirmButton?.addEventListener('click', () => {
@@ -352,9 +389,10 @@ export class ElViewPlot extends LitElement {
         this._setLocation(this).then(() => {
           this._generatePlotList();
           this.mode = Mode.Record;
-          (this.shadowRoot.querySelector(
-            'el-plant-list'
-          ) as ElPlantList).counterEnabled = true;
+          const plotList = this.shadowRoot.querySelector(
+            '#plot-list'
+          ) as ElPlantList;
+          plotList.counterEnabled = true;
         });
         return;
       }
@@ -376,7 +414,41 @@ export class ElViewPlot extends LitElement {
     fab.style.visibility = 'visible';
   }
 
-  _save() {
+  private _addTaxon() {
+    const dialog: Dialog = this.shadowRoot.querySelector('#add-taxon-dialog');
+    const confirmButton: Button = this.shadowRoot.querySelector(
+      '#confirm-add-taxon-button'
+    );
+    const addSpeciesList: ElPlantList = this.shadowRoot.querySelector(
+      '#add-taxon-species-list'
+    ) as ElPlantList;
+    const plotList: ElPlantList = this.shadowRoot.querySelector(
+      '#plot-list'
+    ) as ElPlantList;
+
+    // When the user clicks the confirm button, add the currently selected taxon in addSpeciesList to the plot list
+    confirmButton?.addEventListener('click', () => {
+      const selectedTaxon = addSpeciesList.selectedTaxonId;
+      if (selectedTaxon) {
+        const taxon = this.speciesList?.find(
+          s => s.speciesId === selectedTaxon
+        );
+        const confirmAdd = confirm(
+          `Do you want to add ${taxon.speciesName} to the list?`
+        );
+        if (confirmAdd) {
+          plotList.addTaxon(taxon);
+          dialog.close();
+        }
+      } else {
+        alert('Please select a taxon to add.');
+      }
+    });
+
+    dialog.open = true;
+  }
+
+  private _savePlot() {
     const date = Date.now();
     const doc: PlotSubmission = {
       _id: `plotsubmission:${date}`,
@@ -393,7 +465,7 @@ export class ElViewPlot extends LitElement {
       habitatDescription: this.habitatDescription,
       siteCondition: this.siteCondition,
       areaSampled: this.areaSampled,
-      plotList: (this.shadowRoot.querySelector('el-plant-list') as ElPlantList)
+      plotList: (this.shadowRoot.querySelector('#plot-list') as ElPlantList)
         .data,
     };
     this.db
@@ -416,9 +488,9 @@ export class ElViewPlot extends LitElement {
         });
         (this.shadowRoot.querySelector('#plot-fab') as Fab).style.visibility =
           'hidden';
-        (this.shadowRoot.querySelector(
-          '#plot-metadata'
-        ) as HTMLElement).style.visibility = 'hidden';
+        (
+          this.shadowRoot.querySelector('#plot-metadata') as HTMLElement
+        ).style.visibility = 'hidden';
         alert(
           `Plot record saved(${doc._id}). Remember to sync to upload your list when you have Internet access.`
         );
@@ -430,7 +502,7 @@ export class ElViewPlot extends LitElement {
       });
   }
 
-  _positionError(error: any) {
+  private _positionError(error: any) {
     switch (error.code) {
       case error.PERMISSION_DENIED:
         console.error('User denied the request for Geolocation.');
