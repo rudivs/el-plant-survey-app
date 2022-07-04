@@ -45,7 +45,7 @@ export class ElPlantList extends LitElement {
 
       if (a.speciesName?.toUpperCase() > b.speciesName?.toUpperCase()) return 1;
       else if (a.speciesName?.toUpperCase() < b.speciesName?.toUpperCase())
-        return 1;
+        return -1;
 
       return 0;
     }
