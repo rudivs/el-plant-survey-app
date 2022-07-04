@@ -195,6 +195,12 @@ export class ElViewPlot extends LitElement {
 
     return html` <mwc-dialog id="add-taxon-dialog" heading="Add taxon">
       <p>Please select a taxon to add to this plot.</p>
+      <mwc-textfield
+        id="taxon-filter"
+        maxlength="64"
+        size="40"
+        label="Filter"
+      ></mwc-textfield>
       <el-plant-list
         id="add-taxon-species-list"
         .data=${availableSpecies}
@@ -449,6 +455,12 @@ export class ElViewPlot extends LitElement {
     const plotList: ElPlantList = this.shadowRoot.querySelector(
       '#plot-list'
     ) as ElPlantList;
+    const filterBox: TextField = this.shadowRoot.querySelector('#taxon-filter');
+
+    // Add event handler to the filter box to set the filter on addSpeciesList when the user types
+    filterBox.addEventListener('input', () => {
+      addSpeciesList.filter = filterBox.value;
+    });
 
     // When the user clicks the confirm button, add the currently selected taxon in addSpeciesList to the plot list
     confirmButton?.addEventListener('click', () => {

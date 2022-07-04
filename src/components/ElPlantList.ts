@@ -10,6 +10,7 @@ import { ListBase } from '@material/mwc-list/mwc-list-base.js';
 export class ElPlantList extends LitElement {
   @property({ type: Array }) data: Array<SpeciesRecord> | undefined;
   @property({ type: Boolean }) counterEnabled = false;
+  @property({ type: String }) filter = '';
   private _selectedTaxonId: string | undefined;
 
   static styles = css`
@@ -50,7 +51,12 @@ export class ElPlantList extends LitElement {
 
     return html`
       <mwc-list @selected=${this._updateSelected}>
-        ${this.data?.sort(compare).map(taxon => this._getListItem(taxon))}
+        ${this.data
+          ?.sort(compare)
+          .filter(taxon =>
+            taxon.speciesName?.toUpperCase().includes(this.filter.toUpperCase())
+          )
+          .map(taxon => this._getListItem(taxon))}
       </mwc-list>
     `;
   }
