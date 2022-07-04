@@ -194,7 +194,7 @@ export class ElViewPlot extends LitElement {
     );
 
     return html` <mwc-dialog id="add-taxon-dialog" heading="Add taxon">
-      <p>Please select a taxon to add to this plot.</p>
+      <p>Please type the name of the taxon and select to add to this plot.</p>
       <mwc-textfield
         id="taxon-filter"
         maxlength="64"
@@ -204,6 +204,7 @@ export class ElViewPlot extends LitElement {
       <el-plant-list
         id="add-taxon-species-list"
         .data=${availableSpecies}
+        .filterable=${true}
       ></el-plant-list>
       <mwc-button id="confirm-add-taxon-button" slot="primaryAction">
         Confirm
@@ -264,6 +265,7 @@ export class ElViewPlot extends LitElement {
       })
       .on('complete', () => {
         // TODO: sync UX
+        console.log('Sync complete');
         alert('Sync complete');
       });
   }
@@ -379,9 +381,6 @@ export class ElViewPlot extends LitElement {
       })
       .catch(err => {
         console.log(err);
-        alert(
-          `Could not load the target species list. Please sync first and try again.`
-        );
         return;
       });
   }

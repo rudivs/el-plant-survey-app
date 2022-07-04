@@ -11,6 +11,7 @@ export class ElPlantList extends LitElement {
   @property({ type: Array }) data: Array<SpeciesRecord> | undefined;
   @property({ type: Boolean }) counterEnabled = false;
   @property({ type: String }) filter = '';
+  @property({ type: Boolean }) filterable = false;
   private _selectedTaxonId: string | undefined;
 
   static styles = css`
@@ -49,13 +50,19 @@ export class ElPlantList extends LitElement {
       return 0;
     }
 
+    const filteredData =
+      (this.filterable && this.filter.length > 2
+        ? this.data?.filter(taxon =>
+            taxon.speciesName
+              .toLowerCase()
+              .startsWith(this.filter.toLowerCase())
+          )
+        : []) || [];
+
     return html`
       <mwc-list @selected=${this._updateSelected}>
-        ${this.data
-          ?.sort(compare)
-          .filter(taxon =>
-            taxon.speciesName?.toUpperCase().includes(this.filter.toUpperCase())
-          )
+        ${(this.filterable ? filteredData : this.data)
+          .sort(compare)
           .map(taxon => this._getListItem(taxon))}
       </mwc-list>
     `;
