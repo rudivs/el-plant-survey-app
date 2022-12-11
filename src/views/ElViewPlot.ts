@@ -284,9 +284,9 @@ export class ElViewPlot extends LitElement {
       })
       .on('complete', () => {
         console.log('Sync complete');
+        linearProgress.close();
         snackbar.labelText = 'Sync complete';
         snackbar.show();
-        linearProgress.close();
       });
   }
 
