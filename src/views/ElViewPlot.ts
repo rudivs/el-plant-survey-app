@@ -9,14 +9,15 @@ import '@material/mwc-radio/mwc-radio.js';
 import '@material/mwc-formfield/mwc-formfield.js';
 import '@material/mwc-fab/mwc-fab.js';
 import '@material/mwc-snackbar/mwc-snackbar.js';
+import '@material/mwc-linear-progress';
 import type { Button } from '@material/mwc-button/mwc-button.js';
 import type { Dialog } from '@material/mwc-dialog/mwc-dialog.js';
 import type { TextField } from '@material/mwc-textfield/mwc-textfield.js';
 import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
 import type { Fab } from '@material/mwc-fab/mwc-fab.js';
-//import type { Snackbar } from '@material/mwc-snackbar/mwc-snackbar.js';
-import { ElPlantList } from '../components/ElPlantList.js';
 import type { Snackbar } from '@material/mwc-snackbar/mwc-snackbar.js';
+import type { LinearProgress } from '@material/mwc-linear-progress/mwc-linear-progress.js';
+import { ElPlantList } from '../components/ElPlantList.js';
 
 enum Mode {
   None,
@@ -92,6 +93,11 @@ export class ElViewPlot extends LitElement {
           ${this._getFab(this.mode)}
         </div>
       </mwc-top-app-bar>
+      <mwc-linear-progress
+        id="linear-progress"
+        indeterminate
+        closed="true"
+      ></mwc-linear-progress>
       <mwc-snackbar id="sync-snackbar" labelText="Sync complete"></mwc-snackbar>
     `;
   }
@@ -261,19 +267,26 @@ export class ElViewPlot extends LitElement {
     const remoteCouch =
       'https://c7fb5858-d195-4676-85fa-a9d39219932f-bluemix:d703e01068c2a38078f0901107e5f498bc7e006359a7906d5ffd6257bbcc9a6f@c7fb5858-d195-4676-85fa-a9d39219932f-bluemix.cloudantnosqldb.appdomain.cloud/plant-survey-app';
     const opts = { live: false };
-    //alert('Sync started');
+    const linearProgress = this.shadowRoot.getElementById(
+      'linear-progress'
+    ) as LinearProgress;
+    const snackbar = this.shadowRoot.getElementById(
+      'sync-snackbar'
+    ) as Snackbar;
+    linearProgress.open();
     this.db
       .sync(remoteCouch, opts)
       .on('error', () => {
         console.log('Sync error');
+        linearProgress.close();
+        snackbar.labelText = 'Sync error';
+        snackbar.show();
       })
       .on('complete', () => {
-        // TODO: sync UX
         console.log('Sync complete');
-        const snackbar = this.shadowRoot.getElementById(
-          'sync-snackbar'
-        ) as Snackbar;
+        snackbar.labelText = 'Sync complete';
         snackbar.show();
+        linearProgress.close();
       });
   }
 
