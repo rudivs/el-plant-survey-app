@@ -8,12 +8,15 @@ import '@material/mwc-textarea/mwc-textarea.js';
 import '@material/mwc-radio/mwc-radio.js';
 import '@material/mwc-formfield/mwc-formfield.js';
 import '@material/mwc-fab/mwc-fab.js';
+import '@material/mwc-snackbar/mwc-snackbar.js';
 import type { Button } from '@material/mwc-button/mwc-button.js';
 import type { Dialog } from '@material/mwc-dialog/mwc-dialog.js';
 import type { TextField } from '@material/mwc-textfield/mwc-textfield.js';
 import type { TextArea } from '@material/mwc-textarea/mwc-textarea.js';
 import type { Fab } from '@material/mwc-fab/mwc-fab.js';
+//import type { Snackbar } from '@material/mwc-snackbar/mwc-snackbar.js';
 import { ElPlantList } from '../components/ElPlantList.js';
+import type { Snackbar } from '@material/mwc-snackbar/mwc-snackbar.js';
 
 enum Mode {
   None,
@@ -89,6 +92,7 @@ export class ElViewPlot extends LitElement {
           ${this._getFab(this.mode)}
         </div>
       </mwc-top-app-bar>
+      <mwc-snackbar id="sync-snackbar" labelText="Sync complete"></mwc-snackbar>
     `;
   }
 
@@ -266,7 +270,10 @@ export class ElViewPlot extends LitElement {
       .on('complete', () => {
         // TODO: sync UX
         console.log('Sync complete');
-        alert('Sync complete');
+        const snackbar = this.shadowRoot.getElementById(
+          'sync-snackbar'
+        ) as Snackbar;
+        snackbar.show();
       });
   }
 

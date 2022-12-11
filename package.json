@@ -79,6 +79,7 @@
     "@material/mwc-icon-button": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-list": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-radio": "^0.19.0-canary.18d6b808.0",
+    "@material/mwc-snackbar": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-textarea": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-textfield": "^0.19.0-canary.18d6b808.0",
     "@material/mwc-top-app-bar": "^0.19.0-canary.18d6b808.0",
