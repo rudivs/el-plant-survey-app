@@ -95,7 +95,6 @@ export class ElViewPlot extends LitElement {
       </mwc-top-app-bar>
       <mwc-linear-progress
         id="linear-progress"
-        indeterminate
         closed="true"
       ></mwc-linear-progress>
       <mwc-snackbar id="sync-snackbar" labelText="Sync complete"></mwc-snackbar>
@@ -264,8 +263,30 @@ export class ElViewPlot extends LitElement {
   }
 
   _sync() {
+    let total = 0;
     const remoteCouch =
       'https://c7fb5858-d195-4676-85fa-a9d39219932f-bluemix:d703e01068c2a38078f0901107e5f498bc7e006359a7906d5ffd6257bbcc9a6f@c7fb5858-d195-4676-85fa-a9d39219932f-bluemix.cloudantnosqldb.appdomain.cloud/plant-survey-app';
+    const url =
+      'https://c7fb5858-d195-4676-85fa-a9d39219932f-bluemix.cloudantnosqldb.appdomain.cloud/plant-survey-app/_design/documents/_view/getDocumentTypes?reduce=true&group=true';
+    const username = 'c7fb5858-d195-4676-85fa-a9d39219932f-bluemix';
+    const password =
+      'd703e01068c2a38078f0901107e5f498bc7e006359a7906d5ffd6257bbcc9a6f';
+
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${btoa(username + ':' + password)}`,
+      },
+      credentials: 'include',
+      mode: 'cors',
+    })
+      .then(response => response.json())
+      .then(data => {
+        total = data.rows
+          .map((row: { value: number }) => row.value)
+          .reduce((a: number, b: number) => a + b, 0);
+      });
     const opts = { live: false };
     const linearProgress = this.shadowRoot.getElementById(
       'linear-progress'
@@ -280,6 +301,15 @@ export class ElViewPlot extends LitElement {
         console.log('Sync error');
         linearProgress.close();
         snackbar.labelText = 'Sync error';
+        snackbar.show();
+      })
+      .on('change', info => {
+        if (total === 0) {
+          linearProgress.progress = 0;
+        } else {
+          linearProgress.progress = info.change.docs_read / total;
+        }
+        snackbar.labelText = `Syncing...`;
         snackbar.show();
       })
       .on('complete', () => {
